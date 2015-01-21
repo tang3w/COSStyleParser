@@ -3,6 +3,8 @@
 #include "COSStyleDefine.h"
 #include "COSStyleLex.h"
 
+extern int COSStylelex (yyscan_t yyscanner, char **token_value);
+
 int main(int argc, char **argv) {
     yyscan_t scanner;
     COSStylelex_init(&scanner);
@@ -14,9 +16,10 @@ int main(int argc, char **argv) {
     int result = 0;
 
     do {
-        token = COSStylelex(scanner);
-        printf("Current token: %d\n", token);
-        COSStyleParse(parser, token, NULL, &result);
+        char *token_value = NULL;
+        token = COSStylelex(scanner, &token_value);
+        printf("Current token: %d = %s\n", token, token_value ? token_value : "");
+        COSStyleParse(parser, token, token_value, &result);
     } while (token > 0 && !result);
 
     COSStylelex_destroy(scanner);

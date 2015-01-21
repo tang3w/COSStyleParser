@@ -2,6 +2,13 @@
 #include <stdio.h>
 #include "COSStyleDefine.h"
 #include "COSStyleParser.h"
+
+#define COSSTYLE_COPY_YYTEXT(charpp)                               \
+do {                                                               \
+    *charpp = (char *)malloc((strlen(yytext) + 1) * sizeof(char)); \
+    strcpy(*charpp, yytext);                                       \
+} while (0)
+
 %}
 
 %option noyywrap
@@ -34,8 +41,15 @@ val          {number}|{percentage}|{string}
 ":" { return COSSTYLE_COLON;  }
 ";" { return COSSTYLE_SEMI;   }
 
-{id}   { return COSSTYLE_ID;  }
-{val}  { return COSSTYLE_VAL; }
+{id} {
+    COSSTYLE_COPY_YYTEXT(token_value);
+    return COSSTYLE_ID;
+}
+
+{val} {
+    COSSTYLE_COPY_YYTEXT(token_value);
+    return COSSTYLE_VAL;
+}
 
 . { return COSSTYLE_INVALID; }
 
