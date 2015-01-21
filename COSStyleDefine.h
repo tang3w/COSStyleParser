@@ -1,7 +1,7 @@
 #define YYSTYPE char *
 
-#define COSSTYLE_INVALID_TOKEN -1
+#define COSSTYLE_INVALID -1
 
-void *ParseAlloc(void *(*mallocProc)(size_t));
-void Parse(void *parser, int token, void *value, int *result);
-void ParseFree(void *p, void (*freeProc)(void*));
+void *COSStyleParseAlloc(void *(*mallocProc)(size_t));
+void COSStyleParse(void *parser, int token, void *value, int *result);
+void COSStyleParseFree(void *p, void (*freeProc)(void*));

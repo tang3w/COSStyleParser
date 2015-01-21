@@ -27,16 +27,16 @@ val          {number}|{percentage}|{string}
 
 [ \n\r\t\f]
 
-"{" { return LBRACE; }
-"}" { return RBRACE; }
-"," { return COMMA;  }
-"." { return DOT;    }
-":" { return COLON;  }
-";" { return SEMI;   }
+"{" { return COSSTYLE_LBRACE; }
+"}" { return COSSTYLE_RBRACE; }
+"," { return COSSTYLE_COMMA;  }
+"." { return COSSTYLE_DOT;    }
+":" { return COSSTYLE_COLON;  }
+";" { return COSSTYLE_SEMI;   }
 
-{id}   { return ID;  }
-{val}  { return VAL; }
+{id}   { return COSSTYLE_ID;  }
+{val}  { return COSSTYLE_VAL; }
 
-. { return COSSTYLE_INVALID_TOKEN; }
+. { return COSSTYLE_INVALID; }
 
 %%

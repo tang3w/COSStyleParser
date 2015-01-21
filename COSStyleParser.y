@@ -3,6 +3,8 @@
 #include "COSStyleDefine.h"
 }
 
+%name COSStyleParse
+%token_prefix   COSSTYLE_
 %extra_argument { int *result  }
 %syntax_error   { *result = 1; }
 

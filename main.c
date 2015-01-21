@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
     COSStylelex_init(&scanner);
     COSStyleset_in(stdin, scanner);
 
-    void *parser = ParseAlloc(malloc);
+    void *parser = COSStyleParseAlloc(malloc);
 
     int token = 0;
     int result = 0;
@@ -16,11 +16,11 @@ int main(int argc, char **argv) {
     do {
         token = COSStylelex(scanner);
         printf("Current token: %d\n", token);
-        Parse(parser, token, NULL, &result);
+        COSStyleParse(parser, token, NULL, &result);
     } while (token > 0 && !result);
 
     COSStylelex_destroy(scanner);
-    ParseFree(parser, free);
+    COSStyleParseFree(parser, free);
 
     if (token < 0) {
         printf("Scanner encountered an error!\n");
