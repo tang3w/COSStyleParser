@@ -6,8 +6,8 @@
 %extra_argument { int *result  }
 %syntax_error   { *result = 1; }
 
-sheet    ::= .
 sheet    ::= rulelist .
+rulelist ::= .
 rulelist ::= rulelist rule .
 rule     ::= sellist LBRACE decllist RBRACE .
 sellist  ::= sel .
@@ -19,7 +19,8 @@ clslist  ::= clslist cls .
 cls      ::= DOT ID .
 decllist ::= .
 decllist ::= decllist decl .
-decl     ::= ID COLON val semi.
+decl     ::= ID COLON val semi .
+val      ::= ID .
+val      ::= VAL .
 semi     ::= .
 semi     ::= SEMI .
-val      ::= VAL .

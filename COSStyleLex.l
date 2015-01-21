@@ -21,7 +21,7 @@ string1      \"[^\n\r\f"]*\"
 string2      \'[^\n\r\f']*\'
 string       {string1}|{string2}
 id           -?[_a-z][_a-z0-9-]*
-val          {id}|{number}|{percentage}|{string}
+val          {number}|{percentage}|{string}
 
 %%
 
@@ -37,6 +37,6 @@ val          {id}|{number}|{percentage}|{string}
 {id}   { return ID;  }
 {val}  { return VAL; }
 
-. { return -1; }
+. { return COSSTYLE_INVALID_TOKEN; }
 
 %%
