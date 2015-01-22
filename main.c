@@ -20,9 +20,12 @@ int main(int argc, char **argv) {
     do {
         char *token_value = NULL;
         token = COSStylelex(scanner, &token_value);
-        printf("Current token: %d = %s\n", token, token_value ? token_value : "");
         COSStyleParse(parser, token, token_value, &ctx);
     } while (token > 0 && !ctx.result);
+
+    COSStyleCtxFree(ctx);
+
+    // COSStylePrintAstAsDot(ctx.ast);
 
     COSStylelex_destroy(scanner);
     COSStyleParseFree(parser, free);

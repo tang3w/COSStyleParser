@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #define YYSTYPE char *
 
 #define COSSTYLE_INVALID -1
@@ -47,3 +49,5 @@ void COSStyleParse(void *parser, int token, char *value, COSStyleCtx *cxt);
 void COSStyleParseFree(void *p, void (*freeProc)(void*));
 
 void COSStyleCtxInit(COSStyleCtx *ctx);
+void COSStylePrintAstAsDot(COSStyleAST *astp);
+void COSStyleCtxFree(COSStyleCtx ctx);

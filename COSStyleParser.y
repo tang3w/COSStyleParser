@@ -28,73 +28,115 @@ COSStyleAST *COSStyleASTCreate(COSStyleNodeType nodeType, void *nodeValue, COSSt
 %type sheet    { COSStyleAST * }
 
 sheet(A) ::= rulelist(B) . {
-    A = COSStyleASTCreate(COSStyleNodeTypeSheet, NULL, B, NULL);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeSheet, NULL, B, NULL);
 }
 
 rulelist ::= .
 
 rulelist(A) ::= rulelist(B) rule(C) . {
-    A = COSStyleASTCreate(COSStyleNodeTypeRuleList, NULL, B, C);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeRuleList, NULL, B, C);
 }
 
 rule(A) ::= sellist(B) LBRACE decllist(C) RBRACE . {
-    A = COSStyleASTCreate(COSStyleNodeTypeRule, NULL, B, C);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeRule, NULL, B, C);
 }
 
 sellist(A) ::= sel(B) . {
-    A = COSStyleASTCreate(COSStyleNodeTypeSelList, NULL, B, NULL);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeSelList, NULL, B, NULL);
 }
 
 sellist(A) ::= sellist(B) COMMA sel(C) . {
-    A = COSStyleASTCreate(COSStyleNodeTypeSelList, NULL, B, C);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeSelList, NULL, B, C);
 }
 
 sel(A) ::= ID(B) . {
-    A = COSStyleASTCreate(COSStyleNodeTypeSel, B, NULL, NULL);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeSel, B, NULL, NULL);
 }
 
 sel(A) ::= ID(B) clslist(C) . {
-    A = COSStyleASTCreate(COSStyleNodeTypeSel, B, NULL, C);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeSel, B, NULL, C);
 }
 
 clslist(A) ::= cls(B) . {
-    A = COSStyleASTCreate(COSStyleNodeTypeClsList, NULL, B, NULL);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeClsList, NULL, B, NULL);
 }
 
 clslist(A) ::= clslist(B) cls(C) . {
-    A = COSStyleASTCreate(COSStyleNodeTypeClsList, NULL, B, C);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeClsList, NULL, B, C);
 }
 
 cls(A) ::= DOT ID(B) . {
-    A = COSStyleASTCreate(COSStyleNodeTypeCls, B, NULL, NULL);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeCls, B, NULL, NULL);
 }
 
 decllist ::= .
 
 decllist(A) ::= decllist(B) decl(C) . {
-    A = COSStyleASTCreate(COSStyleNodeTypeDeclList, NULL, B, C);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeDeclList, NULL, B, C);
 }
 
 decl(A) ::= prop(B) COLON val(C) semi . {
-    A = COSStyleASTCreate(COSStyleNodeTypeDecl, NULL, B, C);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeDecl, NULL, B, C);
 }
 
 prop(A) ::= ID(B) . {
-    A = COSStyleASTCreate(COSStyleNodeTypeProp, B, NULL, NULL);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeProp, B, NULL, NULL);
 }
 
 val(A) ::= VAL(B) . {
-    A = COSStyleASTCreate(COSStyleNodeTypeVal, B, NULL, NULL);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeVal, B, NULL, NULL);
 }
 
 val(A) ::= ID(B) . {
-    A = COSStyleASTCreate(COSStyleNodeTypeVal, B, NULL, NULL);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeVal, B, NULL, NULL);
 }
 
 semi ::= .
 semi ::= SEMI .
 
 %code {
+
+char *COSStyleNodeTypeToStr(COSStyleNodeType nodeType) {
+    switch (nodeType) {
+    case COSStyleNodeTypeVal      : return "val";
+    case COSStyleNodeTypeProp     : return "prop";
+    case COSStyleNodeTypeDecl     : return "decl";
+    case COSStyleNodeTypeDeclList : return "decllist";
+    case COSStyleNodeTypeCls      : return "cls";
+    case COSStyleNodeTypeClsList  : return "clslist";
+    case COSStyleNodeTypeSel      : return "sel";
+    case COSStyleNodeTypeSelList  : return "sellist";
+    case COSStyleNodeTypeRule     : return "rule";
+    case COSStyleNodeTypeRuleList : return "rulelist";
+    case COSStyleNodeTypeSheet    : return "sheet";
+    default: break;
+    }
+
+    return "undefined";
+}
+
+void COSStylePrintAstNodes(COSStyleAST *astp) {
+    if (astp == NULL) return;
+
+    printf("_%p\n", astp);
+    printf("_%p[label=%s]\n", astp, COSStyleNodeTypeToStr(astp->nodeType));
+
+    COSStyleAST *l = astp->l;
+    COSStyleAST *r = astp->r;
+
+    if (l != NULL) printf("_%p -> _%p\n", astp, l);
+    if (r != NULL) printf("_%p -> _%p\n", astp, r);
+
+    COSStylePrintAstNodes(l);
+    COSStylePrintAstNodes(r);
+}
+
+void COSStylePrintAstAsDot(COSStyleAST *astp) {
+    printf("digraph G {\n");
+    printf("node[shape=rect]\n");
+    COSStylePrintAstNodes(astp);
+    printf("}");
+}
 
 COSStyleAST *COSStyleASTCreate(COSStyleNodeType nodeType, void *nodeValue, COSStyleAST *l, COSStyleAST *r) {
     COSStyleAST *astp = (COSStyleAST *)malloc(sizeof(COSStyleAST));
@@ -108,6 +150,27 @@ COSStyleAST *COSStyleASTCreate(COSStyleNodeType nodeType, void *nodeValue, COSSt
 void COSStyleCtxInit(COSStyleCtx *ctx) {
     ctx->result = 0;
     ctx->ast = NULL;
+}
+
+void COSStyleAstFree(COSStyleAST *ast) {
+    if (ast == NULL) return;
+
+    COSStyleAST *l = ast->l;
+    COSStyleAST *r = ast->r;
+
+    COSStyleAstFree(l);
+    COSStyleAstFree(r);
+
+    if (ast->nodeValue != NULL)
+        free(ast->nodeValue);
+
+    free(ast);
+}
+
+void COSStyleCtxFree(COSStyleCtx ctx) {
+    if (ctx.ast != NULL) {
+        COSStyleAstFree(ctx.ast);
+    }
 }
 
 }
