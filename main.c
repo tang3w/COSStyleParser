@@ -12,15 +12,17 @@ int main(int argc, char **argv) {
 
     void *parser = COSStyleParseAlloc(malloc);
 
+    COSStyleCtx ctx;
+    COSStyleCtxInit(&ctx);
+
     int token = 0;
-    int result = 0;
 
     do {
         char *token_value = NULL;
         token = COSStylelex(scanner, &token_value);
         printf("Current token: %d = %s\n", token, token_value ? token_value : "");
-        COSStyleParse(parser, token, token_value, &result);
-    } while (token > 0 && !result);
+        COSStyleParse(parser, token, token_value, &ctx);
+    } while (token > 0 && !ctx.result);
 
     COSStylelex_destroy(scanner);
     COSStyleParseFree(parser, free);
@@ -29,7 +31,7 @@ int main(int argc, char **argv) {
         printf("Scanner encountered an error!\n");
     }
 
-    if (result) {
+    if (ctx.result) {
         printf("Parser encountered an error!\n");
     }
 
