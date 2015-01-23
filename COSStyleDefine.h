@@ -12,6 +12,7 @@ struct COSStyleAST {
     void *nodeValue;
     struct COSStyleAST *l;
     struct COSStyleAST *r;
+    void *data;
 };
 
 struct COSStyleCtx {

@@ -28,7 +28,7 @@ COSStyleAST *COSStyleASTCreate(COSStyleNodeType nodeType, void *nodeValue, COSSt
 %type sheet    { COSStyleAST * }
 
 sheet(A) ::= rulelist(B) . {
-    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeSheet, NULL, B, NULL);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeSheet, NULL, NULL, B);
 }
 
 rulelist ::= .
@@ -42,7 +42,7 @@ rule(A) ::= sellist(B) LBRACE decllist(C) RBRACE . {
 }
 
 sellist(A) ::= sel(B) . {
-    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeSelList, NULL, B, NULL);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeSelList, NULL, NULL, B);
 }
 
 sellist(A) ::= sellist(B) COMMA sel(C) . {
@@ -58,7 +58,7 @@ sel(A) ::= ID(B) clslist(C) . {
 }
 
 clslist(A) ::= cls(B) . {
-    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeClsList, NULL, B, NULL);
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeClsList, NULL, NULL, B);
 }
 
 clslist(A) ::= clslist(B) cls(C) . {
@@ -142,6 +142,7 @@ COSStyleAST *COSStyleASTCreate(COSStyleNodeType nodeType, void *nodeValue, COSSt
     COSStyleAST *astp = (COSStyleAST *)malloc(sizeof(COSStyleAST));
     astp->nodeType  = nodeType;
     astp->nodeValue = nodeValue;
+    astp->data = NULL;
     astp->l = l;
     astp->r = r;
     return astp;
