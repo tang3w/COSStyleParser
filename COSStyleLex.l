@@ -35,6 +35,7 @@ val          {number}|{percentage}|{string}|{hexcolor}
 %%
 
 [ \n\r\t\f]
+\/\*[^*]*\*+([^/*][^*]*\*+)*\/
 
 "{" { return COSSTYLE_LBRACE; }
 "}" { return COSSTYLE_RBRACE; }
