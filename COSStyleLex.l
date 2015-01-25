@@ -20,6 +20,7 @@ do {                                                               \
 %option nounput
 
 i            [0-9]+
+h            [0-9a-f]
 digit        [-+]?{i}
 float        [-+]?({i}\.{i}?|{i}?\.{i})
 number       {digit}|{float}[fF]?
@@ -28,7 +29,8 @@ string1      \"[^\n\r\f"]*\"
 string2      \'[^\n\r\f']*\'
 string       {string1}|{string2}
 id           -?[_a-z][_a-z0-9-]*
-val          {number}|{percentage}|{string}
+hexcolor     #{h}+
+val          {number}|{percentage}|{string}|{hexcolor}
 
 %%
 
