@@ -53,6 +53,10 @@ sel(A) ::= ID(B) . {
     A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeSel, B, NULL, NULL);
 }
 
+sel(A) ::= clslist(B) . {
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeSel, NULL, NULL, B);
+}
+
 sel(A) ::= ID(B) clslist(C) . {
     A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeSel, B, NULL, C);
 }
