@@ -30,7 +30,6 @@ string2      \'[^\n\r\f']*\'
 string       {string1}|{string2}
 id           -?[_a-z][_a-z0-9-]*
 hexcolor     #{h}+
-val          {number}|{percentage}|{string}|{hexcolor}
 
 %%
 
@@ -43,15 +42,36 @@ val          {number}|{percentage}|{string}|{hexcolor}
 "." { return COSSTYLE_DOT;    }
 ":" { return COSSTYLE_COLON;  }
 ";" { return COSSTYLE_SEMI;   }
+"+" { return COSSTYLE_ADD;    }
+"-" { return COSSTYLE_SUB;    }
+"*" { return COSSTYLE_MUL;    }
+"/" { return COSSTYLE_DIV;    }
+"(" { return COSSTYLE_LPAREN; }
+")" { return COSSTYLE_RPAREN; }
 
 {id} {
     COSSTYLE_COPY_YYTEXT(token_value);
     return COSSTYLE_ID;
 }
 
-{val} {
+{number} {
     COSSTYLE_COPY_YYTEXT(token_value);
-    return COSSTYLE_VAL;
+    return COSSTYLE_NUMBER;
+}
+
+{percentage} {
+    COSSTYLE_COPY_YYTEXT(token_value);
+    return COSSTYLE_PERCENTAGE;
+}
+
+{string} {
+    COSSTYLE_COPY_YYTEXT(token_value);
+    return COSSTYLE_STRING;
+}
+
+{hexcolor} {
+    COSSTYLE_COPY_YYTEXT(token_value);
+    return COSSTYLE_HEX;
 }
 
 . { return COSSTYLE_INVALID; }

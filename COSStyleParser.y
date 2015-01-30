@@ -1,11 +1,43 @@
 %include {
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
 #include "COSStyleDefine.h"
+
+inline static
+char *COSStyleStrDup(const char *s) {
+    if (!s)
+        return NULL;
+
+    size_t len = (strlen(s) + 1);
+    char *p = malloc(len * sizeof(char));
+
+    if (p)
+        return memcpy(p, s, len);
+    else
+        return NULL;
+}
+
+inline static
+char *COSStyleStrDupPrintf(const char *format, ...) {
+    char *ptr = NULL;
+
+    va_list ap;
+    va_start(ap, format);
+
+    vasprintf(&ptr, format, ap);
+
+    va_end(ap);
+
+    return ptr;
+}
 
 void COSStyleCtxInit(COSStyleCtx *ctx);
 
 COSStyleAST *COSStyleASTCreate(COSStyleNodeType nodeType, void *nodeValue, COSStyleAST *l, COSStyleAST *r);
+
+void COSStyleAstFree(COSStyleAST *ast);
 
 }
 
@@ -15,6 +47,9 @@ COSStyleAST *COSStyleASTCreate(COSStyleNodeType nodeType, void *nodeValue, COSSt
 %syntax_error   { ctx->result = 1; }
 
 %token_type    { char * }
+%type atom     { COSStyleAST * }
+%type item     { COSStyleAST * }
+%type expr     { COSStyleAST * }
 %type val      { COSStyleAST * }
 %type decl     { COSStyleAST * }
 %type decllist { COSStyleAST * }
@@ -87,16 +122,123 @@ prop(A) ::= ID(B) . {
     A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeProp, B, NULL, NULL);
 }
 
-val(A) ::= VAL(B) . {
-    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeVal, B, NULL, NULL);
-}
-
 val(A) ::= ID(B) . {
+    COSStyleAST *ast = COSStyleASTCreate(COSStyleNodeTypeVal, B, NULL, NULL);
+    ast->nodeValueType = COSStyleNodeValTypeID;
+
+    A = ctx->ast = ast;
+}
+
+val(A) ::= STRING(B) . {
+    COSStyleAST *ast = COSStyleASTCreate(COSStyleNodeTypeVal, B, NULL, NULL);
+    ast->nodeValueType = COSStyleNodeValTypeString;
+
+    A = ctx->ast = ast;
+}
+
+val(A) ::= HEX(B) . {
+    COSStyleAST *ast = COSStyleASTCreate(COSStyleNodeTypeVal, B, NULL, NULL);
+    ast->nodeValueType = COSStyleNodeValTypeHex;
+
+    A = ctx->ast = ast;
+}
+
+val(A) ::= expr(B) . {
+    void *nodeValue = COSStyleStrDup(B->nodeValue);
+
+    COSStyleAST *ast = COSStyleASTCreate(COSStyleNodeTypeVal, nodeValue, NULL, NULL);
+
+    ast->nodeValueType = COSStyleNodeValTypeExpression;
+
+    A = ctx->ast = ast;
+
+    COSStyleAstFree(B);
+}
+
+expr(A) ::= item(B) . {
+    void *nodeValue = COSStyleStrDup(B->nodeValue);
+
+    COSStyleAST *ast = COSStyleASTCreate(COSStyleNodeTypeVal, nodeValue, NULL, NULL);
+
+    A = ctx->ast = ast;
+
+    COSStyleAstFree(B);
+}
+
+expr(A) ::= expr(B) ADD item(C) . {
+    void *nodeValue = COSStyleStrDupPrintf("%s + %s", B->nodeValue, C->nodeValue);
+
+    COSStyleAST *ast = COSStyleASTCreate(COSStyleNodeTypeVal, nodeValue, NULL, NULL);
+
+    A = ctx->ast = ast;
+
+    COSStyleAstFree(B);
+    COSStyleAstFree(C);
+}
+
+expr(A) ::= expr(B) SUB item(C) . {
+    void *nodeValue = COSStyleStrDupPrintf("%s - %s", B->nodeValue, C->nodeValue);
+
+    COSStyleAST *ast = COSStyleASTCreate(COSStyleNodeTypeVal, nodeValue, NULL, NULL);
+
+    A = ctx->ast = ast;
+
+    COSStyleAstFree(B);
+    COSStyleAstFree(C);
+}
+
+item(A) ::= atom(B) . {
+    void *nodeValue = COSStyleStrDup(B->nodeValue);
+
+    COSStyleAST *ast = COSStyleASTCreate(COSStyleNodeTypeVal, nodeValue, NULL, NULL);
+
+    A = ctx->ast = ast;
+
+    COSStyleAstFree(B);
+}
+
+item(A) ::= item(B) MUL atom(C) . {
+    void *nodeValue = COSStyleStrDupPrintf("%s * %s", B->nodeValue, C->nodeValue);
+
+    COSStyleAST *ast = COSStyleASTCreate(COSStyleNodeTypeVal, nodeValue, NULL, NULL);
+
+    A = ctx->ast = ast;
+
+    COSStyleAstFree(B);
+    COSStyleAstFree(C);
+}
+
+item(A) ::= item(B) DIV atom(C) . {
+    void *nodeValue = COSStyleStrDupPrintf("%s / %s", B->nodeValue, C->nodeValue);
+
+    COSStyleAST *ast = COSStyleASTCreate(COSStyleNodeTypeVal, nodeValue, NULL, NULL);
+
+    A = ctx->ast = ast;
+
+    COSStyleAstFree(B);
+    COSStyleAstFree(C);
+}
+
+atom(A) ::= LPAREN expr(B) RPAREN . {
+    void *nodeValue = COSStyleStrDupPrintf("( %s )", B->nodeValue);
+
+    COSStyleAST *ast = COSStyleASTCreate(COSStyleNodeTypeVal, nodeValue, NULL, NULL);
+
+    A = ctx->ast = ast;
+
+    COSStyleAstFree(B);
+}
+
+atom(A) ::= PERCENTAGE(B) . {
     A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeVal, B, NULL, NULL);
 }
 
-semi ::= .
+atom(A) ::= NUMBER(B) . {
+    A = ctx->ast = COSStyleASTCreate(COSStyleNodeTypeVal, B, NULL, NULL);
+}
+
 semi ::= SEMI .
+semi ::= .
 
 %code {
 
@@ -144,11 +286,14 @@ void COSStylePrintAstAsDot(COSStyleAST *astp) {
 
 COSStyleAST *COSStyleASTCreate(COSStyleNodeType nodeType, void *nodeValue, COSStyleAST *l, COSStyleAST *r) {
     COSStyleAST *astp = (COSStyleAST *)malloc(sizeof(COSStyleAST));
-    astp->nodeType  = nodeType;
+
+    astp->nodeType = nodeType;
     astp->nodeValue = nodeValue;
+    astp->nodeValueType = 0;
     astp->data = NULL;
     astp->l = l;
     astp->r = r;
+
     return astp;
 }
 
