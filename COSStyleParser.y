@@ -143,6 +143,19 @@ val(A) ::= HEX(B) . {
     A = ctx->ast = ast;
 }
 
+val(A) ::= NUMBER(B) COMMA NUMBER(C) . {
+    void *nodeValue = COSStyleStrDupPrintf("%s,%s", B, C);
+
+    COSStyleAST *ast = COSStyleASTCreate(COSStyleNodeTypeVal, nodeValue, NULL, NULL);
+
+    ast->nodeValueType = COSStyleNodeValTypeSize;
+
+    A = ctx->ast = ast;
+
+    free(B);
+    free(C);
+}
+
 val(A) ::= expr(B) . {
     void *nodeValue = COSStyleStrDup(B->nodeValue);
 
