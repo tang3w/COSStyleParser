@@ -277,7 +277,6 @@ char *COSStyleNodeTypeToStr(COSStyleNodeType nodeType) {
 void COSStylePrintAstNodes(COSStyleAST *astp) {
     if (astp == NULL) return;
 
-    printf("_%p\n", astp);
     printf("_%p[label=%s]\n", astp, COSStyleNodeTypeToStr(astp->nodeType));
 
     COSStyleAST *l = astp->l;
@@ -293,7 +292,9 @@ void COSStylePrintAstNodes(COSStyleAST *astp) {
 void COSStylePrintAstAsDot(COSStyleAST *astp) {
     printf("digraph G {\n");
     printf("node[shape=rect]\n");
+
     COSStylePrintAstNodes(astp);
+
     printf("}");
 }
 
